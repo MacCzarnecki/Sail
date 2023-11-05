@@ -20,7 +20,7 @@ public class BoatController : MonoBehaviour
     void Update()
     {
         if(Input.GetKey(KeyCode.UpArrow))
-            gameObject.transform.position -= transform.forward * Time.deltaTime * 5f;
+            gameObject.transform.position += transform.forward * Time.deltaTime * 5f;
         if(Input.GetKey(KeyCode.RightArrow))
             gameObject.transform.rotation *= Quaternion.Euler(new Vector3(0f, 2f, 0f));
         if(Input.GetKey(KeyCode.LeftArrow))
