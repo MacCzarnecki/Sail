@@ -12,9 +12,9 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _ALPHATEST_ON
   - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords:
-  - _SPECULAR_SETUP
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -23,7 +23,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DepthOnly
-  m_LockedProperties: _ZWriteControl
+  m_LockedProperties: _Color_1 _FresnelColor _ZWriteControl
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -77,7 +77,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AlphaClip: 0
+    - _AlphaClip: 1
     - _AlphaToMask: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 0
@@ -85,17 +85,21 @@ Material:
     - _CastShadows: 1
     - _Cull: 2
     - _Cutoff: 0.5
+    - _DecalMeshBiasType: 0
+    - _DecalMeshDepthBias: 0
+    - _DecalMeshViewBias: 0
     - _DetailNormalMapScale: 1
+    - _DrawOrder: 0
     - _DstBlend: 10
-    - _Fade: 0.24
-    - _FrenelStrength: 0.79
+    - _Fade: 2.24
+    - _FrenelStrength: 8
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _Offset: 0.29
+    - _Offset: 1.33
     - _Parallax: 0.02
     - _QueueControl: 1
     - _QueueOffset: 0
@@ -104,17 +108,17 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 5
     - _Surface: 1
-    - _Transparency: 0.6
+    - _Transparency: 0.94
     - _UVSec: 0
-    - _WorkflowMode: 0
+    - _WorkflowMode: 1
     - _ZTest: 4
     - _ZWrite: 0
     - _ZWriteControl: 0
     m_Colors:
-    - _Color: {r: 0.13725488, g: 0.47876927, b: 0.7529412, a: 1}
-    - _Color_1: {r: 0.14161621, g: 0.43000388, b: 0.6415094, a: 0}
+    - _Color: {r: 0.3446066, g: 0.58098966, b: 0.754717, a: 1}
+    - _Color_1: {r: 0.18533282, g: 0.33485892, b: 0.7169812, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FresnelColor: {r: 0.36862752, g: 0.972549, b: 0.95049167, a: 0}
+    - _FresnelColor: {r: 0.44716978, g: 0.8141735, b: 1, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &4237237880735740932
 MonoBehaviour:

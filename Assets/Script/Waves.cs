@@ -127,9 +127,9 @@ public class Waves : MonoBehaviour
                 {
                     var dir = o.direction.normalized;
 
-                    y += Mathf.Cos(verts[x* (Dimensions + 1) + z].x 
+                    y += Mathf.Cos((verts[x* (Dimensions + 1) + z].x 
                                     * dir.x + verts[x * (Dimensions + 1) + z].z 
-                                    * dir.y + Time.time * o.speed) 
+                                    * dir.y + Time.time * o.speed) / o.length) 
                                     * o.scale;
                 }
                 
@@ -143,6 +143,8 @@ public class Waves : MonoBehaviour
             mesh.SetNormals(nor);
         else
             mesh.RecalculateNormals();
+
+        
 
         mesh.RecalculateBounds();
     }

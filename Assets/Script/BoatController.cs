@@ -7,13 +7,16 @@ using UnityEngine.UIElements;
 public class BoatController : MonoBehaviour
 {
     // Start is called before the first frame update
-
+    private bool isOnABeach = false;
     public Camera mainCamera;
 
     private Vector3 cameraPosition;
+
+    private float cameraHeight;
     void Start()
     {
-        cameraPosition = mainCamera.transform.position - transform.position;;
+        cameraHeight = mainCamera.transform.position.y;
+        cameraPosition = mainCamera.transform.position - transform.position;
     }
 
     // Update is called once per frame
@@ -26,12 +29,34 @@ public class BoatController : MonoBehaviour
         if(Input.GetKey(KeyCode.LeftArrow))
             gameObject.transform.rotation *= Quaternion.Euler(new Vector3(0f, -2f, 0f));
 
-        mainCamera.transform.position = transform.position + cameraPosition;
+        mainCamera.transform.position += (transform.position + cameraPosition - mainCamera.transform.position) / 20f;
+        cameraPosition.y = cameraHeight;
+
+
         
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        //Output the Collider's GameObject's name
+        if(collision.collider is TerrainCollider)
+        {
+            isOnABeach = true;
+            GetComponent<Rigidbody>().useGravity = true;
+            Debug.Log(collision.collider.name);
+        }
+    }
+    
+    void OnCollisionExit(Collision collision)
+    {
+        isOnABeach = false;
+        GetComponent<Rigidbody>().useGravity = false;
     }
 
     public void Bounce(List<Octave> octaves)
     {
+        if(isOnABeach)
+            return;
         Vector3[] vertices = new Vector3[8];
         
         vertices[0] = transform.position + new Vector3(-1f, 0, -1f);
@@ -53,9 +78,9 @@ public class BoatController : MonoBehaviour
             {
                 var dir = o.direction.normalized;
 
-                height += Mathf.Cos(vertices[i].x 
+                height += Mathf.Cos((vertices[i].x 
                                 * dir.x + vertices[i].z 
-                                    * dir.y + Time.time * o.speed) 
+                                    * dir.y + Time.time * o.speed) / o.length) 
                                     * o.scale;
             }
             vertices[i] += Vector3.up * height;
@@ -65,9 +90,9 @@ public class BoatController : MonoBehaviour
             {
                 var dir = o.direction.normalized;
 
-                y += Mathf.Cos(transform.position.x 
+                y += Mathf.Cos((transform.position.x 
                                 * dir.x + transform.position.z 
-                                    * dir.y + Time.time * o.speed) 
+                                    * dir.y + Time.time * o.speed) / o.length) 
                                     * o.scale;
             }
         transform.position = new Vector3(transform.position.x, y , transform.position.z);
@@ -82,6 +107,8 @@ public class BoatController : MonoBehaviour
         normal += Vector3.Cross(vertices[7] - transform.position, vertices[0] - transform.position);
         normal.Normalize();
 
-        transform.rotation = Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal), 0.05f);
+
+        transform.position += new Vector3(normal.x, 0f, normal.z) / 10f;
     }
 }

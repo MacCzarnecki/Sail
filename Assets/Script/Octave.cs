@@ -10,4 +10,6 @@ public struct Octave
 
     public Vector2 direction;
 
+    public float length;
+
 }
