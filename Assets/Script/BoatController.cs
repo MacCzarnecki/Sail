@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -41,16 +42,25 @@ public class BoatController : MonoBehaviour
         //Output the Collider's GameObject's name
         if(collision.collider is TerrainCollider)
         {
+            // //GetComponent<Rigidbody>().AddForce(collision.contacts[0].impulse, ForceMode.Impulse);
+            // Terrain terrain = collider.GameObject().GetComponent<Terrain>();
+            // Vector3 hit = collider.ClosestPointOnBounds(transform.position);
+            // transform.position = hit;
+
+
+            // float normalizedX = (transform.position.x - terrain.GetPosition().x) / terrain.terrainData.size.x;
+            // float normalizedY = (transform.position.z - terrain.GetPosition().z) / terrain.terrainData.size.z;
+            // Vector3 normal = terrain.terrainData.GetInterpolatedNormal(normalizedX, normalizedY);
+            // float gradient = terrain.terrainData.GetSteepness(normalizedX, normalizedY); 
+            // transform.rotation = Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal);    
+            // Debug.Log(gradient);
             isOnABeach = true;
-            GetComponent<Rigidbody>().useGravity = true;
-            Debug.Log(collision.collider.name);
         }
     }
     
     void OnCollisionExit(Collision collision)
     {
         isOnABeach = false;
-        GetComponent<Rigidbody>().useGravity = false;
     }
 
     public void Bounce(List<Octave> octaves)
