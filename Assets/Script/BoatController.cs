@@ -23,6 +23,7 @@ public class BoatController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        GameManager.instance._canDock = CheckTerrainInFront();
         if(Input.GetKey(KeyCode.UpArrow))
             gameObject.transform.position += transform.forward * Time.deltaTime * 5f;
         if(Input.GetKey(KeyCode.RightArrow))
@@ -33,8 +34,6 @@ public class BoatController : MonoBehaviour
         mainCamera.transform.position += (transform.position + cameraPosition - mainCamera.transform.position) / 20f;
         cameraPosition.y = cameraHeight;
 
-
-        
     }
 
     void OnCollisionStay(Collision collision)
@@ -43,19 +42,37 @@ public class BoatController : MonoBehaviour
         if(collision.collider is TerrainCollider)
         {
             // //GetComponent<Rigidbody>().AddForce(collision.contacts[0].impulse, ForceMode.Impulse);
-            // Terrain terrain = collider.GameObject().GetComponent<Terrain>();
-            // Vector3 hit = collider.ClosestPointOnBounds(transform.position);
-            // transform.position = hit;
+            Terrain terrain = collision.collider.GameObject().GetComponent<Terrain>();
+            Vector3 hit = collision.collider.ClosestPointOnBounds(transform.position);
+            transform.position = hit;
 
 
-            // float normalizedX = (transform.position.x - terrain.GetPosition().x) / terrain.terrainData.size.x;
-            // float normalizedY = (transform.position.z - terrain.GetPosition().z) / terrain.terrainData.size.z;
-            // Vector3 normal = terrain.terrainData.GetInterpolatedNormal(normalizedX, normalizedY);
-            // float gradient = terrain.terrainData.GetSteepness(normalizedX, normalizedY); 
-            // transform.rotation = Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal);    
-            // Debug.Log(gradient);
+            float normalizedX = (transform.position.x - terrain.GetPosition().x) / terrain.terrainData.size.x;
+            float normalizedY = (transform.position.z - terrain.GetPosition().z) / terrain.terrainData.size.z;
+            Vector3 normal = terrain.terrainData.GetInterpolatedNormal(normalizedX, normalizedY);
+            float gradient = terrain.terrainData.GetSteepness(normalizedX, normalizedY); 
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal), 0.2f);    
             isOnABeach = true;
         }
+    }
+
+    public bool CheckTerrainInFront()
+    {
+        Ray[] rays = {new Ray(transform.position, (transform.forward + (Vector3.down / 3f)) * 3f),
+                    new Ray(transform.position, (transform.forward + (Vector3.down / 3f)) * 3f + transform.right),
+                    new Ray(transform.position, (transform.forward + (Vector3.down / 3f)) * 3f - transform.right),
+                    new Ray(transform.position, (transform.forward + (Vector3.down / 5f)) * 3f),
+                    new Ray(transform.position, (transform.forward + (Vector3.down / 5f)) * 3f + transform.right),
+                    new Ray(transform.position, (transform.forward + (Vector3.down / 5f)) * 3f - transform.right)};
+        foreach(Ray ray in rays)
+            Debug.DrawRay(ray.origin, transform.position);
+
+        foreach(Ray ray in rays)
+            if(Physics.Raycast(ray, 3f, LayerMask.GetMask("Terrain")))
+                return true;
+
+        return false;
+
     }
     
     void OnCollisionExit(Collision collision)
@@ -66,7 +83,9 @@ public class BoatController : MonoBehaviour
     public void Bounce(List<Octave> octaves)
     {
         if(isOnABeach)
+        {
             return;
+        }
         Vector3[] vertices = new Vector3[8];
         
         vertices[0] = transform.position + new Vector3(-1f, 0, -1f);
@@ -117,7 +136,7 @@ public class BoatController : MonoBehaviour
         normal += Vector3.Cross(vertices[7] - transform.position, vertices[0] - transform.position);
         normal.Normalize();
 
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal), 0.05f);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal), 0.1f);
 
         transform.position += new Vector3(normal.x, 0f, normal.z) / 10f;
     }
