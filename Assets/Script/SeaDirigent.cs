@@ -26,7 +26,7 @@ public class SeaDirigent : MonoBehaviour
         for(int i = 0; i < 9; i++)
         {
             squares[i] = Instantiate(waves);
-            squares[i].GetComponent<Waves>().offset = new Vector2(i / 3 - 1, i % 3 - 1);
+            squares[i].GetComponent<Waves>().SetVerts(new Vector2(i / 3 - 1, i % 3 - 1));
         }
 
         
@@ -37,7 +37,7 @@ public class SeaDirigent : MonoBehaviour
     {
         foreach(var square in squares)
         {
-            square.GetComponent<Waves>().UpdateMesh(octaves);
+            //square.GetComponent<Waves>().UpdateMesh(octaves);
 
             square.GetComponent<Waves>().automaticNormals = automaticNormals;
             if(square.GetComponent<Waves>().IsInBounds(boat.transform.position))
@@ -51,7 +51,7 @@ public class SeaDirigent : MonoBehaviour
                             var newOffset = offset - squares[i].GetComponent<Waves>().offset + square.GetComponent<Waves>().offset;
                             Destroy(squares[i]);
                             squares[i] = Instantiate(waves);
-                            squares[i].GetComponent<Waves>().offset = newOffset;
+                            squares[i].GetComponent<Waves>().SetVerts(newOffset);
                         }
                     }
                     offset = square.GetComponent<Waves>().offset;

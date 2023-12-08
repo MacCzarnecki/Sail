@@ -2,7 +2,7 @@ Shader "Custom/WaterFilter"
 {
     SubShader
     {
-        Tags {"RenderPipeline" = "UniversalRenderPipeline" "Queue"="Transparent+1" }
+        Tags {"Queue"="Transparent+1" }
 
         Pass { Blend Zero One}
         

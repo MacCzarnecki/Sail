@@ -43,11 +43,11 @@ public class Waves : MonoBehaviour
     {
         var uvs = new Vector2[mesh.vertices.Length];
 
-        for(int x = 0; x < Dimensions + 1; x++)
-            for(int z = 0; z < Dimensions + 1; z++)
+        for(int x = 0; x < Dimensions; x++)
+            for(int z = 0; z < Dimensions; z++)
             {
                 var vec = new Vector2((x / UVScale) % 2, (z / UVScale) % 2);
-                uvs[x * (Dimensions + 1) + z] = new Vector2(vec.x <= 1 ? vec.x : 2 - vec.x, vec.y <= 1 ? vec.y : 2 - vec.y);
+                uvs[x * Dimensions + z] = new Vector2(vec.x <= 1 ? vec.x : 2 - vec.x, vec.y <= 1 ? vec.y : 2 - vec.y);
             }
 
             return uvs;
@@ -55,10 +55,25 @@ public class Waves : MonoBehaviour
 
     private Vector3[] GenerateVerts()
     {
-        var verts = new Vector3[(int)Mathf.Pow(Dimensions + 1, 2)];
+        var verts = new Vector3[(int)Mathf.Pow(Dimensions , 2)];
         Array.Fill(verts, Vector3.zero);
 
         return verts; 
+    }
+
+    public void SetVerts(Vector2 _offset)
+    {
+        offset = _offset;
+        var verts = mesh.vertices;
+        for(int x = 0; x < Dimensions ; x++)
+            for(int z = 0; z < Dimensions ; z++)
+            {
+                verts[x * (Dimensions ) + z] = new Vector3((x + (offset.x * (Dimensions - 1))) / 4f, 0f, (z + (offset.y * (Dimensions - 1))) / 4f);
+            }
+
+        mesh.vertices = verts;
+
+        mesh.RecalculateBounds();
     }
     private int[] GenerateTries()
     {
@@ -67,14 +82,13 @@ public class Waves : MonoBehaviour
         for(int x = 0; x < Dimensions; x++)
             for(int z = 0; z < Dimensions; z++)
             {
-                if(x != 0 && z != 0 && x != Dimensions - 1 && z != Dimensions - 1)
-                {
-                    tries[(x * (Dimensions + 1) + z) * 6] = x * (Dimensions + 1) + z;
-                    tries[(x * (Dimensions + 1) + z) * 6 + 1] = (x + 1) * (Dimensions + 1) + z + 1;
-                    tries[(x * (Dimensions + 1) + z) * 6 + 2] = (x + 1) * (Dimensions + 1) + z;
-                    tries[(x * (Dimensions + 1) + z) * 6 + 3] = x * (Dimensions + 1) + z;
-                    tries[(x * (Dimensions + 1) + z) * 6 + 4] = x * (Dimensions + 1) + z + 1;
-                    tries[(x * (Dimensions + 1) + z) * 6 + 5] = (x + 1) * (Dimensions + 1) + z + 1;
+                if(x != Dimensions - 1 && z != Dimensions - 1){
+                    tries[(x * Dimensions + z) * 6] = x * Dimensions + z;
+                    tries[(x * Dimensions + z) * 6 + 1] = (x + 1) * Dimensions + z + 1;
+                    tries[(x * Dimensions + z) * 6 + 2] = (x + 1) * Dimensions + z;
+                    tries[(x * Dimensions + z) * 6 + 3] = x * Dimensions + z;
+                    tries[(x * Dimensions + z) * 6 + 4] = x * Dimensions + z + 1;
+                    tries[(x * Dimensions + z) * 6 + 5] = (x + 1) * Dimensions + z + 1;
                 }
             }
 
@@ -122,27 +136,16 @@ public class Waves : MonoBehaviour
         for(int x = 0; x < Dimensions + 1; x++)
             for(int z = 0; z < Dimensions + 1; z++)
             {
-                var y = 0f;
-                foreach(Octave o in octaves)
-                {
-                    var dir = o.direction.normalized;
-
-                    y += Mathf.Cos((verts[x* (Dimensions + 1) + z].x 
-                                    * dir.x + verts[x * (Dimensions + 1) + z].z 
-                                    * dir.y + Time.time * o.speed) / o.length) 
-                                    * o.scale;
-                }
-                
-                verts[x * (Dimensions + 1) + z] = new Vector3(x + (offset.x * (Dimensions - 2)), y, z + (offset.y * (Dimensions - 2)));
+                verts[x * (Dimensions + 1) + z] = new Vector3((x + (offset.x * Dimensions)), 0f, (z + (offset.y * Dimensions)));
             }
 
         mesh.vertices = verts;
 
-        var nor = SetNormals(verts);
+        /*var nor = SetNormals(verts);
         if(!automaticNormals)
             mesh.SetNormals(nor);
         else
-            mesh.RecalculateNormals();
+            mesh.RecalculateNormals();*/
 
         
 
@@ -152,10 +155,13 @@ public class Waves : MonoBehaviour
 
     public bool IsInBounds(Vector3 position)
     {
-        int a = Dimensions + 2;
-        int b = Dimensions * Dimensions - 2;
+        int a = 0;
+        int b = Dimensions * Dimensions - 1;
         if(position.x > mesh.vertices[a].x && position.x < mesh.vertices[b].x && position.z > mesh.vertices[a].z && position.z < mesh.vertices[b].z)
+        {
+            Debug.Log(offset);
             return true;
+        }
         return false;
     }
 

@@ -2,20 +2,24 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.XR;
 
 public class BoatController : MonoBehaviour
 {
     // Start is called before the first frame update
-    private bool isOnABeach = false;
     public Camera mainCamera;
 
     private Vector3 cameraPosition;
 
     private float cameraHeight;
+
+    private GameManager gameManager;
     void Start()
     {
+        gameManager = GameManager.instance;
         cameraHeight = mainCamera.transform.position.y;
         cameraPosition = mainCamera.transform.position - transform.position;
     }
@@ -23,7 +27,17 @@ public class BoatController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        GameManager.instance._canDock = CheckTerrainInFront();
+        if(GetComponent<Rigidbody>().velocity.magnitude != 0f)
+        {
+            GetComponent<Rigidbody>().AddForce(-GetComponent<Rigidbody>().velocity, ForceMode.Force);
+        }
+        gameManager._canDock = CheckTerrainInFront();
+
+        if(gameManager._canDock && Input.GetKeyDown("e"))
+        {
+            Debug.Log("Try to dock");
+        }
+
         if(Input.GetKey(KeyCode.UpArrow))
             gameObject.transform.position += transform.forward * Time.deltaTime * 5f;
         if(Input.GetKey(KeyCode.RightArrow))
@@ -36,26 +50,6 @@ public class BoatController : MonoBehaviour
 
     }
 
-    void OnCollisionStay(Collision collision)
-    {
-        //Output the Collider's GameObject's name
-        if(collision.collider is TerrainCollider)
-        {
-            // //GetComponent<Rigidbody>().AddForce(collision.contacts[0].impulse, ForceMode.Impulse);
-            Terrain terrain = collision.collider.GameObject().GetComponent<Terrain>();
-            Vector3 hit = collision.collider.ClosestPointOnBounds(transform.position);
-            transform.position = hit;
-
-
-            float normalizedX = (transform.position.x - terrain.GetPosition().x) / terrain.terrainData.size.x;
-            float normalizedY = (transform.position.z - terrain.GetPosition().z) / terrain.terrainData.size.z;
-            Vector3 normal = terrain.terrainData.GetInterpolatedNormal(normalizedX, normalizedY);
-            float gradient = terrain.terrainData.GetSteepness(normalizedX, normalizedY); 
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal), 0.2f);    
-            isOnABeach = true;
-        }
-    }
-
     public bool CheckTerrainInFront()
     {
         Ray[] rays = {new Ray(transform.position, (transform.forward + (Vector3.down / 3f)) * 3f),
@@ -63,29 +57,34 @@ public class BoatController : MonoBehaviour
                     new Ray(transform.position, (transform.forward + (Vector3.down / 3f)) * 3f - transform.right),
                     new Ray(transform.position, (transform.forward + (Vector3.down / 5f)) * 3f),
                     new Ray(transform.position, (transform.forward + (Vector3.down / 5f)) * 3f + transform.right),
-                    new Ray(transform.position, (transform.forward + (Vector3.down / 5f)) * 3f - transform.right)};
-        foreach(Ray ray in rays)
-            Debug.DrawRay(ray.origin, transform.position);
+                    new Ray(transform.position, (transform.forward + (Vector3.down / 5f)) * 3f - transform.right),
+                    new Ray(transform.position, Vector3.down)};
+
+        bool groundDetected = false;
 
         foreach(Ray ray in rays)
             if(Physics.Raycast(ray, 3f, LayerMask.GetMask("Terrain")))
-                return true;
+            {
+                GetComponent<Rigidbody>().AddForce(-ray.direction, ForceMode.Acceleration);
+                Debug.DrawRay(ray.origin, ray.direction * 3f, Color.red);
+                groundDetected = true;
+            }
+            else
+            {
+                Debug.DrawRay(ray.origin, ray.direction * 3f, Color.green);
+            }
 
-        return false;
+        return groundDetected;
 
     }
     
-    void OnCollisionExit(Collision collision)
+    private void Dock()
     {
-        isOnABeach = false;
+
     }
 
     public void Bounce(List<Octave> octaves)
     {
-        if(isOnABeach)
-        {
-            return;
-        }
         Vector3[] vertices = new Vector3[8];
         
         vertices[0] = transform.position + new Vector3(-1f, 0, -1f);

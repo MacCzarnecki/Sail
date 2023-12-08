@@ -44,5 +44,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9973ed964cf815f89a580d74d0912bb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  octaves:
+  - speed: 0.2
+    scale: 0.16
+    direction: {x: 0.01, y: 0.04}
+    length: 1.53
+  - speed: 2.26
+    scale: 0.01
+    direction: {x: 0.88, y: -0.29}
+    length: 0.38
+  - speed: 0.63
+    scale: 0.09
+    direction: {x: -0.37, y: -0.09}
+    length: 1.4
+  - speed: 30
+    scale: 0.43
+    direction: {x: 1.44, y: -0.03}
+    length: 20
   waves: {fileID: 4891683278693618264, guid: 59386ec9b67c3a32f8cf071a34869257, type: 3}
   boat: {fileID: 0}
+  automaticNormals: 0
