@@ -4,12 +4,14 @@ Shader "Custom/Waves" {
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
 		_WaterFogColor ("Water Fog Color", Color) = (0, 0, 0, 0)
 		_WaterFogDensity ("Water Fog Density", Range(0, 2)) = 0.1
+		_RefractionStrength ("Refraction Strength", Range(0, 1)) = 0.25
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 		//_Amplitude ("Amplitude", Float) = 1
 		_WaveA ("Wave A (dir, steepness, wavelength)", Vector) = (1,0,0.5,10)
 		_WaveB ("Wave B", Vector) = (0,1,0.25,20)
 		_WaveC ("Wave C", Vector) = (1,1,0.15,10)
+		_WaveD ("Wave B", Vector) = (0,1,0.25,20)
 	}
 	SubShader {
 		Tags { "RenderType"="Transparent" "Queue"="Transparent+2" }
@@ -19,7 +21,7 @@ Shader "Custom/Waves" {
 
 		CGPROGRAM
 
-		#pragma surface surf Standard alpha finalcolor:ResetAlpha vertex:vert addshadow
+		#pragma surface surf Standard alpha vertex:vert addshadow
 		#pragma target 3.0
 
 		#include "LookingThroughWater.cginc"
@@ -34,7 +36,7 @@ Shader "Custom/Waves" {
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;
-		float4 _WaveA, _WaveB, _WaveC;
+		float4 _WaveA, _WaveB, _WaveC, _WaveD;
 
 		float3 GerstnerWave (
 			float4 wave, float3 p, inout float3 tangent, inout float3 binormal
@@ -68,10 +70,6 @@ Shader "Custom/Waves" {
 			);
 		}
 
-		void ResetAlpha (Input IN, SurfaceOutputStandard o, inout fixed4 color) {
-			color.a = _WaterFogDensity;
-		}
-
 		void vert(inout appdata_full vertexData) {
 			float3 gridPoint = vertexData.vertex.xyz;
 			float3 tangent = float3(1, 0, 0);
@@ -80,6 +78,7 @@ Shader "Custom/Waves" {
 			p += GerstnerWave(_WaveA, gridPoint, tangent, binormal);
 			p += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
 			p += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
+			p += GerstnerWave(_WaveD, gridPoint, tangent, binormal);
 			float3 normal = normalize(cross(binormal, tangent));
 			vertexData.vertex.xyz = p;
 			vertexData.normal = normal;
@@ -93,7 +92,8 @@ Shader "Custom/Waves" {
 			o.Alpha = c.a;
 			
 			
-			o.Emission = ColorBelowWater(IN.screenPos) * (1 - c.a);
+			o.Albedo = ColorBelowWater(IN.screenPos, o.Normal);
+			o.Alpha = 1;
 		}
 		ENDCG
 	}

@@ -45,11 +45,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0ada128e4f7851f7845fd1299e3ceb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Dimensions: 60
+  Dimensions: 250
   boat: {fileID: 919132149155446097, guid: 4203cca70720dc6068d34dc46dac0a25, type: 3}
   offset: {x: 0, y: 0}
   UVScale: 0
-  automaticNormals: 1
 --- !u!23 &1171180200565544640
 MeshRenderer:
   m_ObjectHideFlags: 0

@@ -22,8 +22,6 @@ public class Waves : MonoBehaviour
     protected MeshFilter meshFilter;
     protected Mesh mesh;
     public float UVScale;
-
-    public bool automaticNormals = true;
     // Start is called before the first frame update
     void Awake()
     {
@@ -61,14 +59,14 @@ public class Waves : MonoBehaviour
         return verts; 
     }
 
-    public void SetVerts(Vector2 _offset)
+    public void SetVerts(Vector2 _offset, Vector3 boatPosition)
     {
         offset = _offset;
         var verts = mesh.vertices;
         for(int x = 0; x < Dimensions ; x++)
             for(int z = 0; z < Dimensions ; z++)
             {
-                verts[x * (Dimensions ) + z] = new Vector3((x + (offset.x * (Dimensions - 1))) / 4f, 0f, (z + (offset.y * (Dimensions - 1))) / 4f);
+                verts[x * Dimensions + z] = new Vector3((x + (offset.x * Dimensions) - (Dimensions * 3 / 4)) / 4f, 0f, (z + (offset.y * Dimensions) - (Dimensions / 2)) / 4f) + boatPosition;
             }
 
         mesh.vertices = verts;
@@ -95,64 +93,10 @@ public class Waves : MonoBehaviour
         return tries;
     }
 
-    private Vector3[] SetNormals(Vector3[] verts)
-    {
-        Vector3[] normals = new Vector3[(int)Mathf.Pow(Dimensions + 1, 2)];
-
-        for(int x = 0; x < Dimensions + 1; x++)
-            for(int z = 0; z < Dimensions + 1; z++)
-            {
-                if(x != 0 && z != 0 && x != Dimensions && z != Dimensions)
-                {
-                    normals[x*(Dimensions + 1) + z] = Vector3.zero;
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z - Dimensions - 2] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z - 1] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z - 1] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z + Dimensions] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z + Dimensions] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z + Dimensions + 1] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z + Dimensions + 1] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z + Dimensions + 2] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z + Dimensions + 2] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z + 1] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z + 1] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z - Dimensions] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z - Dimensions] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z - Dimensions - 1] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z] -= Vector3.Cross((verts[x*(Dimensions + 1) + z - Dimensions - 1] - verts[x* (Dimensions + 1) + z]), (verts[x*(Dimensions + 1) + z - Dimensions - 2] - verts[x* (Dimensions + 1) + z]));
-                    normals[x*(Dimensions + 1) + z].Normalize();
-                }
-                else
-                   normals[x*(Dimensions + 1) + z] = Vector3.zero; 
-            }
-        
-        return normals;
-    }
-
-    // Update is called once per frame
     void Update()
     {
        
     }
-
-    public void UpdateMesh(List<Octave> octaves)
-    {
-        if(mesh.vertices is null && mesh.vertices.Length == 0)
-            return;
-        var verts = mesh.vertices;
-        for(int x = 0; x < Dimensions + 1; x++)
-            for(int z = 0; z < Dimensions + 1; z++)
-            {
-                verts[x * (Dimensions + 1) + z] = new Vector3((x + (offset.x * Dimensions)), 0f, (z + (offset.y * Dimensions)));
-            }
-
-        mesh.vertices = verts;
-
-        /*var nor = SetNormals(verts);
-        if(!automaticNormals)
-            mesh.SetNormals(nor);
-        else
-            mesh.RecalculateNormals();*/
-
-        
-
-        mesh.RecalculateBounds();
-    }
-
-
     public bool IsInBounds(Vector3 position)
     {
         int a = 0;
@@ -163,19 +107,5 @@ public class Waves : MonoBehaviour
             return true;
         }
         return false;
-    }
-
-    public float GetHeight(Vector3 position)
-    {
-
-        List<Vector3> verts = mesh.vertices.OrderByDescending(v => Vector3.Magnitude(v - position)).ToList();
-
-        float y = 0f;
-
-        for(int i = 0; i < 9; i++)
-            y += verts[i].y;
-        
-        return y;
-
     }
 }

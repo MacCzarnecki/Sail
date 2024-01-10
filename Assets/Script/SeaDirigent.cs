@@ -17,48 +17,66 @@ public class SeaDirigent : MonoBehaviour
 
     private Vector2 offset = new Vector2(0f, 0f);
 
-    GameObject[] squares = new GameObject[9];
-
-    public bool automaticNormals = true;
+    GameObject[] squares = new GameObject[16];
 
     void Start()
     {
-        for(int i = 0; i < 9; i++)
+        squares[0] = Instantiate(waves);
+        squares[0].GetComponent<Waves>().SetVerts(new Vector2(0, 0), boat.transform.position);
+        /*for(int i = 0; i < 16; i++)
         {
             squares[i] = Instantiate(waves);
-            squares[i].GetComponent<Waves>().SetVerts(new Vector2(i / 3 - 1, i % 3 - 1));
-        }
-
-        
+            squares[i].GetComponent<Waves>().SetVerts(new Vector2(i / 4 - 2, i % 4 - 1), boat.transform.position);
+        }*/
     }
 
     // Update is called once per frame
     void Update()
     {
-        foreach(var square in squares)
+        squares[0].GetComponent<Waves>().SetVerts(new Vector2(0, 0), boat.transform.position);
+        /*foreach(var square in squares)
         {
-            //square.GetComponent<Waves>().UpdateMesh(octaves);
-
-            square.GetComponent<Waves>().automaticNormals = automaticNormals;
             if(square.GetComponent<Waves>().IsInBounds(boat.transform.position))
             {
                 if(offset != square.GetComponent<Waves>().offset)
                 {
-                    for(int i = 0; i < 9; i++)
+                    for(int i = 0; i < 16; i++)
                     {
-                        if((square.GetComponent<Waves>().offset - squares[i].GetComponent<Waves>().offset).magnitude > 1.8f)
+                        int xOffset = (int)(square.GetComponent<Waves>().offset - squares[i].GetComponent<Waves>().offset).x;
+                        int zOffset = (int)(square.GetComponent<Waves>().offset - squares[i].GetComponent<Waves>().offset).y;
+
+                        if(xOffset > 2f)
                         {
-                            var newOffset = offset - squares[i].GetComponent<Waves>().offset + square.GetComponent<Waves>().offset;
+                            var newOffset = squares[i].GetComponent<Waves>().offset + new Vector2(4f, 0f);
                             Destroy(squares[i]);
                             squares[i] = Instantiate(waves);
-                            squares[i].GetComponent<Waves>().SetVerts(newOffset);
+                            squares[i].GetComponent<Waves>().SetVerts(newOffset, boat.transform.position);
+                        }
+                        if(xOffset < -1f)
+                        {
+                            var newOffset = squares[i].GetComponent<Waves>().offset + new Vector2(-4f, 0f);
+                            Destroy(squares[i]);
+                            squares[i] = Instantiate(waves);
+                            squares[i].GetComponent<Waves>().SetVerts(newOffset, boat.transform.position);
+                        }
+                        if(zOffset < -2f)
+                        {
+                            var newOffset = squares[i].GetComponent<Waves>().offset + new Vector2(0f, -4f);
+                            Destroy(squares[i]);
+                            squares[i] = Instantiate(waves);
+                            squares[i].GetComponent<Waves>().SetVerts(newOffset, boat.transform.position);
+                        }
+                        if(zOffset > 1f)
+                        {
+                            var newOffset = squares[i].GetComponent<Waves>().offset + new Vector2(0f, 4f);
+                            Destroy(squares[i]);
+                            squares[i] = Instantiate(waves);
+                            squares[i].GetComponent<Waves>().SetVerts(newOffset, boat.transform.position);
                         }
                     }
                     offset = square.GetComponent<Waves>().offset;
                 }
             }
-        }
-
-        boat.GetComponent<BoatController>().Bounce(octaves);
+        }*/
     }
 }

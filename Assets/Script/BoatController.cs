@@ -16,6 +16,8 @@ public class BoatController : MonoBehaviour
 
     private float cameraHeight;
 
+    public Material waterMaterial;
+
     private GameManager gameManager;
     void Start()
     {
@@ -27,6 +29,8 @@ public class BoatController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Bounce();
+
         if(GetComponent<Rigidbody>().velocity.magnitude != 0f)
         {
             GetComponent<Rigidbody>().AddForce(-GetComponent<Rigidbody>().velocity, ForceMode.Force);
@@ -45,9 +49,7 @@ public class BoatController : MonoBehaviour
         if(Input.GetKey(KeyCode.LeftArrow))
             gameObject.transform.rotation *= Quaternion.Euler(new Vector3(0f, -2f, 0f));
 
-        mainCamera.transform.position += (transform.position + cameraPosition - mainCamera.transform.position) / 20f;
-        cameraPosition.y = cameraHeight;
-
+        mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, transform.position + cameraPosition, 0.2f);
     }
 
     public bool CheckTerrainInFront()
@@ -75,7 +77,6 @@ public class BoatController : MonoBehaviour
             }
 
         return groundDetected;
-
     }
     
     private void Dock()
@@ -83,60 +84,53 @@ public class BoatController : MonoBehaviour
 
     }
 
-    public void Bounce(List<Octave> octaves)
+    Vector3 GerstnerWave (
+			Vector4 wave, Vector3 p, ref Vector3 tangent, ref Vector3 binormal) {
+		    float steepness = wave.z;
+		    float wavelength = wave.w;
+		    float k = 2 * Mathf.PI / wavelength;
+			float c = Mathf.Sqrt(9.8f / k);
+			Vector2 d = new Vector2(wave.x, wave.y);
+            d.Normalize();
+			float f = k * (Vector2.Dot(d, new Vector2(p.x, p.z)) - c * Time.timeSinceLevelLoad);
+			float a = steepness / k;
+
+			tangent += new Vector3(
+				-d.x * d.x * (steepness * Mathf.Sin(f)),
+				d.x * (steepness * Mathf.Cos(f)),
+				-d.x * d.y * (steepness * Mathf.Sin(f))
+			);
+			binormal += new Vector3(
+				-d.x * d.y * (steepness * Mathf.Sin(f)),
+				d.y * (steepness * Mathf.Cos(f)),
+				-d.y * d.y * (steepness * Mathf.Sin(f))
+			);
+			return new Vector3(
+				d.x * (a * Mathf.Cos(f)),
+				a * Mathf.Sin(f),
+				d.y * (a * Mathf.Cos(f))
+			);
+		}
+
+    public void Bounce()
     {
-        Vector3[] vertices = new Vector3[8];
-        
-        vertices[0] = transform.position + new Vector3(-1f, 0, -1f);
-        vertices[1] = transform.position + new Vector3(-1f, 0, 0);
-        vertices[2] = transform.position + new Vector3(-1f, 0, 1f);
-        vertices[3] = transform.position + new Vector3(0, 0, 1f);
-        vertices[4] = transform.position + new Vector3(1f, 0, 1f);
-        vertices[5] = transform.position + new Vector3(1f, 0, 0);
-        vertices[6] = transform.position + new Vector3(1, 0, -1f);
-        vertices[7] = transform.position + new Vector3(0, 0, -1f);
-
-        Vector3 normal = Vector3.zero;
-
-
-        for(int i = 0; i < 8; i++)
+        List<Vector4> waves = new List<Vector4>();
+        char iter = 'A';
+        while(waterMaterial.HasProperty("_Wave" + iter))
         {
-            float height = 0f;
-            foreach(Octave o in octaves)
-            {
-                var dir = o.direction.normalized;
-
-                height += Mathf.Cos((vertices[i].x 
-                                * dir.x + vertices[i].z 
-                                    * dir.y + Time.time * o.speed) / o.length) 
-                                    * o.scale;
-            }
-            vertices[i] += Vector3.up * height;
+            waves.Add(waterMaterial.GetVector("_Wave" + iter));
+            iter++;
         }
-        float y = 0f;
-        foreach(Octave o in octaves)
-            {
-                var dir = o.direction.normalized;
 
-                y += Mathf.Cos((transform.position.x 
-                                * dir.x + transform.position.z 
-                                    * dir.y + Time.time * o.speed) / o.length) 
-                                    * o.scale;
-            }
-        transform.position = new Vector3(transform.position.x, y , transform.position.z);
+        Vector3 gridPoint = new Vector3(transform.position.x, 0f, transform.position.z);
+		Vector3 tangent = new Vector3(1, 0, 0);
+		Vector3 binormal = new Vector3(0, 0, 1);
+		Vector3 p = gridPoint;
+        foreach(Vector4 wave in waves)
+            p += GerstnerWave(wave, gridPoint, ref tangent, ref binormal);
 
-        normal += Vector3.Cross(vertices[0] - transform.position, vertices[1] - transform.position);
-        normal += Vector3.Cross(vertices[1] - transform.position, vertices[2] - transform.position);
-        normal += Vector3.Cross(vertices[2] - transform.position, vertices[3] - transform.position);
-        normal += Vector3.Cross(vertices[3] - transform.position, vertices[4] - transform.position);
-        normal += Vector3.Cross(vertices[4] - transform.position, vertices[5] - transform.position);
-        normal += Vector3.Cross(vertices[5] - transform.position, vertices[6] - transform.position);
-        normal += Vector3.Cross(vertices[6] - transform.position, vertices[7] - transform.position);
-        normal += Vector3.Cross(vertices[7] - transform.position, vertices[0] - transform.position);
-        normal.Normalize();
-
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal), 0.1f);
-
-        transform.position += new Vector3(normal.x, 0f, normal.z) / 10f;
+		Vector3 normal = Vector3.Cross(binormal, tangent).normalized;
+        transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, p.y, transform.position.z), 0.05f);
+		transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Vector3.Cross(transform.right, normal), normal), 0.006f);
     }
 }
